@@ -1,19 +1,18 @@
 #!/bin/bash
 echo "This script reindexes all of the .active rosbags within a directory."
 echo "Are the bags in this directory? [y/n]"
-read DIRECTORY
+read directory
 
-if [ "$DIRECTORY" == "y" ]; then
-  PATH="$PWD"
-  echo "path is $PATH"
+if [ "$directory" == "y" ]; then
+file_path="$PWD"
 fi
 
-if [ "$DIRECTORY" == "n" ]; then
+if [ "$directory" == "n" ]; then
   echo "Enter the directory containing the bag files."
-  read PATH
+  read file_path
 fi
 
-{ cd $PATH } || { echo "Invalid path. Enter the correct directory."
+cd $file_path
 
 active_count="$(ls -1 *bag.active | wc -l)"
 total_count="$(ls -1 *.bag* | wc -l)"
@@ -25,14 +24,18 @@ read REINDEX
 if [ "$REINDEX" == "y" ]; then
   echo "Reindexing active rosbags."
   rosbag reindex *.bag.active
+  wait
+  echo "Rosbags have been reindexed."
 fi
 
-wait
-
-echo "Rosbags have been reindexed."
 echo "Would you like to rename the .bag.active files to .bag files? [y/n]"
-read RENAME
+read rename
 
-if [ "$RENAME" == "y" ]; then
-
+if [ "$rename" == "y" ]; then
+  for file in *.bag.active
+  do
+    filename=$(basename "$file")
+    filename="${filename%.*}"
+    mv $file $filename
+  done
 fi
