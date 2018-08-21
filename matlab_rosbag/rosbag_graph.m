@@ -4,7 +4,7 @@ clear ros.bag;
 clear
 
 %% Get info from rosbag
-bagfile = '/media/dallin/32F8BC1FF8BBDEF3/20180201PM/flight2/orbit_test_2018-01-03-18-30-36_9.bag';
+bagfile = '/home/dallin/flight_rosbags/milestone1_1.bag';
 
 % topic_names = {'/state' '/gimbal/control'};
 % topics = cellstr(topic_names);

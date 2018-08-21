@@ -32,6 +32,47 @@ for topic = topics
     end
     clear struct
     switch type{:}
+        case 'sensor_msgs/NavSatFix'
+%             keyboard;
+            struct.status = [a.status];
+            struct.latitude = [a.latitude];
+            struct.longitude = [a.longitude];
+            struct.altitude = [a.altitude];
+            struct.position_covariance = [a.position_covariance];
+            struct.time = [d.time] - t0;
+            
+        case 'std_msgs/Float64'
+%             keyboard;
+            struct.heading = [a];
+            struct.time = [d.time] - t0;
+        case 'geometry_msgs/TwistStamped'
+%             keyboard;
+            struct.twist = [a.twist];
+            struct.time = [d.time] - t0;
+            
+        case 'mavros_msgs/HomePosition'
+%             keyboard;
+            struct.geo = [a.geo];
+            struct.position = [a.position];
+            struct.orientation = [a.orientation];
+            struct.approach = [a.approach];
+            struct.time = [d.time] - t0;
+            
+        case 'mavros_msgs/VFR_HUD'
+%             keyboard;
+            struct.airspeed = [a.airspeed];
+            struct.groundspeed = [a.groundspeed];
+            struct.heading = [a.heading];
+            struct.throttle = [a.throttle];
+            struct.altitude = [a.altitude];
+            struct.climb = [a.climb];
+            struct.time = [d.time] - t0;
+            
+        case 'geometry_msgs/Vector3'
+%             keyboard;
+            struct.vector = [a];
+            struct.time = [d.time] - t0;
+            
         case 'rosplane_msgs/Current_Path'
 %             keyboard;
             struct.flag = [a.flag];
@@ -194,12 +235,12 @@ for topic = topics
             struct.ground_course = [a.ground_course];
             struct.covariance = [a.covariance];
             struct.time = [d.time] - t0;
-        case 'sensor_msgs/NavSatFix'
-            struct.latitude = [a.latitude];
-            struct.longitude = [a.longitude];
-            cov = [a.position_covariance];
-            struct.hAcc = cov(1,:);
-            struct.time = [d.time] - t0;
+%         case 'sensor_msgs/NavSatFix'
+%             struct.latitude = [a.latitude];
+%             struct.longitude = [a.longitude];
+%             cov = [a.position_covariance];
+%             struct.hAcc = cov(1,:);
+%             struct.time = [d.time] - t0;
         case 'geometry_msgs/Transform'
             struct.transform.translation = [a.translation];
             struct.transform.rotation = [a.rotation];
