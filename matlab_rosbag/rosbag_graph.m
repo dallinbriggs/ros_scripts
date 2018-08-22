@@ -38,7 +38,7 @@ tmav_waypoints = [[msgs_t.tracker.mavros.mission.waypoints.waypoints.x_lat];
                  [msgs_t.tracker.mavros.mission.waypoints.waypoints.y_long];
                  [msgs_t.tracker.mavros.mission.waypoints.waypoints.z_alt]]';
              
-t_animation = animatedline('Color', 'y');
+t_animation = animatedline('Color', 'y', 'MaximumNumPoints', 200);
 set(gca, 'XLim', [-111.9074 -111.8955], 'YLim', [40.3606 40.3660]);
              
 % hold on
