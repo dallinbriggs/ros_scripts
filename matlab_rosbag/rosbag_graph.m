@@ -4,35 +4,56 @@ clear ros.bag;
 clear
 
 %% Get info from rosbag
-bagfile = '/home/dallin/flight_rosbags/milestone1_1.bag';
+bagfile_h = '/home/dallin/flight_rosbags/milestone_3/flight_8_18_18/handoff/handoff.bag';
+bagfile_t = '/home/dallin/flight_rosbags/milestone_3/flight_8_18_18/tracker/tracker.bag';
+addpath('/home/dallin/flight_rosbags/milestone_3/flight_8_18_18/ros_scripts/matlab_rosbag/plot_goole_map');
 
 % topic_names = {'/state' '/gimbal/control'};
 % topics = cellstr(topic_names);
 % msgs1 = processTopics(topics,bagfile1);
-[msgs, errors, warnings, infos, error_time, warning_time, info_time] = processAllTopics(bagfile);
+[msgs_h, errors_h, warnings_h, infos_h, error_time_h, warning_time_h, info_time_h] = processAllTopics(bagfile_h);
+[msgs_t, errors_t, warnings_t, infos_t, error_time_t, warning_time_t, info_time_t] = processAllTopics(bagfile_t);
 
-%% Plot truth and estimate
-ins_time = msgs.handoff_mav.ins.imu1.time;
-ins_acc = msgs.handoff_mav.ins.imu1.acc;
-ins_gyro = msgs.handoff_mav.ins.imu1.gyro;
-
-clf
-% close all
-figure(1)
-hold on
-plot(ins_time, ins_acc)
-title('INS Acceleration')
-xlabel('Time (seconds)')
-ylabel('Acceleration (m/s/s)')
-legend('X accel', 'Y accel', 'Z accel')
-hold off
-
-figure(2)
-hold on
-plot(ins_time, ins_gyro)
-title('INS Gyro')
-legend('X Gryo', 'Y Gyro', 'Z Gyro')
-hold off
+%% Plot Ground target trajectory
+gt_pos_global = [msgs_h.ground_target.mavros.global_position.global.latitude; 
+                 msgs_h.ground_target.mavros.global_position.global.longitude;
+                 msgs_h.ground_target.mavros.global_position.global.altitude - ...
+                 msgs_h.ground_target.mavros.global_position.global.altitude(1)]';
+             
+hmav_pos_global = [msgs_h.handoff.mavros.global_position.global.latitude;
+                 msgs_h.handoff.mavros.global_position.global.longitude;
+                 msgs_h.handoff.mavros.global_position.global.altitude - ...
+                 msgs_h.handoff.mavros.global_position.global.altitude(1)]';
+             
+hmav_waypoints = [[msgs_h.handoff.mavros.mission.waypoints.waypoints.x_lat]; 
+                  [msgs_h.handoff.mavros.mission.waypoints.waypoints.y_long]; 
+                  [msgs_h.handoff.mavros.mission.waypoints.waypoints.z_alt]]';
+              
+tmav_pos_global = [msgs_t.tracker.mavros.global_position.global.latitude;
+                 msgs_t.tracker.mavros.global_position.global.longitude;
+                 msgs_t.tracker.mavros.global_position.global.altitude - ...
+                 msgs_t.tracker.mavros.global_position.global.altitude(1)]';
+             
+tmav_waypoints = [[msgs_t.tracker.mavros.mission.waypoints.waypoints.x_lat];
+                 [msgs_t.tracker.mavros.mission.waypoints.waypoints.y_long];
+                 [msgs_t.tracker.mavros.mission.waypoints.waypoints.z_alt]]';
+             
+t_animation = animatedline('Color', 'y');
+set(gca, 'XLim', [-111.9074 -111.8955], 'YLim', [40.3606 40.3660]);
+             
+% hold on
+plot_google_map('Maptype', 'satellite')
+for i=1:length(tmav_pos_global(:,1))
+    addpoints(t_animation, tmav_pos_global(i,2), tmav_pos_global(i,1));
+    drawnow
+end
+% plot(gt_pos_global(2,:), gt_pos_global(1,:),'r') 
+% plot(hmav_pos_global(:,2), hmav_pos_global(:,1), 'b')
+% plot(hmav_waypoints(:,2), hmav_waypoints(:,1), '.g', 'markers', 12)
+% plot(tmav_pos_global(:,2), tmav_pos_global(:,1), 'y')
+% plot(tmav_waypoints(:,2), tmav_waypoints(:,1), '.m', 'markers', 12)
+% legend ('Ground target', 'Handoff path', 'Handoff waypoints')
+% hold off
 
 
 
@@ -42,33 +63,33 @@ close all;
 figure(1)
 subplot(3,1,1);
 hold on
-plot(msgs.state.time,msgs.state.Va);
-plot(msgs.controller_commands.time, msgs.controller_commands.Va_c);
+plot(msgs_h.state.time,msgs_h.state.Va);
+plot(msgs_h.controller_commands.time, msgs_h.controller_commands.Va_c);
 legend('Measured', 'Commanded');
 hold off;
 title('airspeed')
 subplot(3,1,2);
 hold on
-plot(msgs.state.time, -msgs.state.position(3,:));
-plot(msgs.controller_commands.time, msgs.controller_commands.h_c);
+plot(msgs_h.state.time, -msgs_h.state.position(3,:));
+plot(msgs_h.controller_commands.time, msgs_h.controller_commands.h_c);
 legend('Altitude', 'Commanded');
 hold off;
 title('Altitude')
 subplot(3,1,3)
-plot(msgs.airspeed.time, msgs.airspeed.differential_pressure)
+plot(msgs_h.airspeed.time, msgs_h.airspeed.differential_pressure)
 title('Diff press')
 
 %% plot IMU
 clf
 close all
 figure(1)
-plot(msgs.attitude.time, msgs.attitude.attitude);
+plot(msgs_h.attitude.time, msgs_h.attitude.attitude);
 
 %% Plot only altitude
 % clf;
 % close all;
 figure(4)
-plot(msgs.state.time,-msgs.state.position(3,:));
+plot(msgs_h.state.time,-msgs_h.state.position(3,:));
 title('Altitude')
 xlabel('Time (sec)')
 ylabel('Height (meters)')
@@ -78,13 +99,13 @@ clf;
 close all;
 figure(1)
 subplot(2,1,1)
-plot(msgs.gps.data.time,msgs.gps.data.fix)
+plot(msgs_h.gps.data.time,msgs_h.gps.data.fix)
 title('fix status')
 
 figure(2)
-gps = [msgs.gps.data.latitude;
-    msgs.gps.data.longitude;
-    msgs.gps.data.altitude];
+gps = [msgs_h.gps.data.latitude;
+    msgs_h.gps.data.longitude;
+    msgs_h.gps.data.altitude];
 inertial = gps - gps(:,1);
 plot3(inertial(1,:),inertial(2,:),inertial(3,:));
 title('inertial position in 3d')
@@ -99,7 +120,7 @@ hold on;
 % plot(msgs.rc_raw.time,msgs.rc_raw.values(3,:));
 % plot(msgs.rc_raw.time,msgs.rc_raw.values(4,:));
 % plot(msgs.rc_raw.time,msgs.rc_raw.values(5,:));
-plot(msgs.rc_raw.time,msgs.rc_raw.values(6,:));
+plot(msgs_h.rc_raw.time,msgs_h.rc_raw.values(6,:));
 % plot(msgs.rc_raw.time,msgs.rc_raw.values(7,:));
 % plot(msgs.rc_raw.time,msgs.rc_raw.values(8,:));
 legend('RC1 Ail', 'RC2 Ele', 'RC3 Thro', 'RC4 Rud', 'RC5', 'RC6');
@@ -110,16 +131,16 @@ clf;
 close all
 figure(4)
 subplot(2,2,1)
-plot(msgs.status.time,msgs.status.armed)
+plot(msgs_h.status.time,msgs_h.status.armed)
 title('Armed state')
 subplot(2,2,2)
-plot(msgs.status.time,msgs.status.failsafe)
+plot(msgs_h.status.time,msgs_h.status.failsafe)
 title('failsafe')
 subplot(2,2,3)
-plot(msgs.status.time,msgs.status.rc_override)
+plot(msgs_h.status.time,msgs_h.status.rc_override)
 title('rc_override')
 subplot(2,2,4)
-plot(msgs.status.time,msgs.status.num_errors)
+plot(msgs_h.status.time,msgs_h.status.num_errors)
 title('Num errors')
 
 %% Plot the position in 3D
@@ -127,7 +148,7 @@ clf;
 close all;
 figure(1)
 hold on
-plot3(msgs.state.position(1,:),msgs.state.position(2,:),-msgs.state.position(3,:))
+plot3(msgs_h.state.position(1,:),msgs_h.state.position(2,:),-msgs_h.state.position(3,:))
 % axis([-200 300 -300 50 -10 100])
 hold off
 
@@ -136,17 +157,17 @@ hold off
 % close all
 figure(1);
 hold on
-plot(msgs.state.time,msgs.state.chi);
-plot(msgs.controller_commands.time, msgs.controller_commands.chi_c);
+plot(msgs_h.state.time,msgs_h.state.chi);
+plot(msgs_h.controller_commands.time, msgs_h.controller_commands.chi_c);
 legend('Chi', 'Commanded Chi');
 % axis([0 200 -20 20]);
 
 %% Plot roll
 figure(2)
 hold on
-plot(msgs.state.time, msgs.state.phi)
-plot(msgs.controller_inners.time, msgs.controller_inners.phi_c);
-plot(msgs.rc_raw.time,(msgs.rc_raw.values(6,:)-1500)/1000);
+plot(msgs_h.state.time, msgs_h.state.phi)
+plot(msgs_h.controller_inners.time, msgs_h.controller_inners.phi_c);
+plot(msgs_h.rc_raw.time,(msgs_h.rc_raw.values(6,:)-1500)/1000);
 legend('Measured', 'Commanded', 'RC signal');
 
 %% Plot the baro
@@ -154,7 +175,7 @@ legend('Measured', 'Commanded', 'RC signal');
 figure(2)
 % subplot(2,2,1)
 hold on
-plot(msgs.baro.time,msgs.baro.pressure/1000)
+plot(msgs_h.baro.time,msgs_h.baro.pressure/1000)
 % plot(msgs.ins.baro.time,msgs.ins.baro.fluid_pressure)
 % plot((BARO(2970:end,2)-BARO(2970,2))/10e5,BARO(2970:end,4)/1000)
 legend('Rosflight', 'INS', 'Pixhawk');
@@ -164,7 +185,7 @@ hold off
 
 figure(3)
 hold on
-plot(msgs.baro.time,msgs.baro.altitude/1000)
+plot(msgs_h.baro.time,msgs_h.baro.altitude/1000)
 % plot(msgs.ins.baro.time,msgs.ins.
 
 hold off
@@ -174,8 +195,8 @@ hold off
 clf;
 close all;
 figure(1)
-ell = zeros(3,length(msgs.gimbal.control.vector));
-gimbal = msgs.gimbal.control.vector;
+ell = zeros(3,length(msgs_h.gimbal.control.vector));
+gimbal = msgs_h.gimbal.control.vector;
 gimbal_position = [];
 phi = [];
 theta = [];
@@ -184,11 +205,11 @@ gimbal_point = [];
 gimbal_plot = [];
 
 ell(3,:) = sin(gimbal(3,:));
-for i = 1:5:length(msgs.state.time)
-    gimbal_position(:,end+1) = msgs.state.position(:,i);
-    phi(end+1) = msgs.state.phi(i);
-    theta(end+1) = msgs.state.theta(i);
-    psi(end+1) = msgs.state.psi(i);
+for i = 1:5:length(msgs_h.state.time)
+    gimbal_position(:,end+1) = msgs_h.state.position(:,i);
+    phi(end+1) = msgs_h.state.phi(i);
+    theta(end+1) = msgs_h.state.theta(i);
+    psi(end+1) = msgs_h.state.psi(i);
     
 end
 
@@ -226,7 +247,7 @@ end
 
 
 hold on
-plot3(msgs.state.position(1,:),msgs.state.position(2,:),-msgs.state.position(3,:))
+plot3(msgs_h.state.position(1,:),msgs_h.state.position(2,:),-msgs_h.state.position(3,:))
 plot3(0,0,0,'*')
 plot3(gimbal_plot(1,:),gimbal_plot(2,:),-gimbal_plot(3,:))
 xlabel('Position N')

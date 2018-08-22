@@ -68,6 +68,48 @@ for topic = topics
             struct.climb = [a.climb];
             struct.time = [d.time] - t0;
             
+        case 'mavros_msgs/RCIn'
+            struct.rssi = [a.rssi];
+            struct.channels = [a.channels];
+            struct.time = [d.time] - t0;
+            
+        case 'mavros_msgs/RCOut'
+            struct.channels = [a.channels];
+            struct.time = [d.time] - t0;
+            
+        case 'mavros_msgs/State'
+            struct.connected = [a.connected];
+            struct.armed = [a.armed];
+            struct.guided = [a.guided];
+            struct.mode = [a.mode];
+            struct.system_status = [a.system_status];
+            struct.time = [d.time] - t0;
+            
+        case 'mavros_msgs/WaypointReached'
+            struct.wp_seq = [a.wp_seq];
+            struct.time = [d.time] - t0;         
+            
+        case 'mavros_msgs/WaypointList'
+            struct.current_seq = [a.current_seq];
+            struct.waypoints = [a.waypoints];
+            struct.time = [d.time] - t0;
+            
+        case 'geometry_msgs/QuaternionStamped'
+            struct.quaternion = [a.quaternion];
+            struct.time = [d.time] - t0;
+            
+        case 'std_msgs/Float32'
+            struct.value = [a];
+            struct.time = [d.time] - t0;
+            
+        case 'gimbal_serializer/status'
+            struct.command_in_Hz = [a.command_in_Hz];
+            struct.servo_command_Hz = [a.servo_command_Hz];
+            struct.roll_command = [a.roll_command];
+            struct.pitch_command = [a.pitch_command];
+            struct.yaw_command = [a.yaw_command];
+            struct.time = [d.time] - t0;
+            
         case 'geometry_msgs/Vector3'
 %             keyboard;
             struct.vector = [a];
@@ -209,11 +251,9 @@ for topic = topics
             struct.vAcc = [a.vAcc];
             struct.pDop = [a.pDop];
             struct.linear_velocity = [a.linear_velocity];
-            struct.ground_speed_2d = [a.ground_speed_2d];
-            struct.ground_speed_3d = [a.ground_speed_3d];
             struct.sAcc = [a.sAcc];
-            struct.course = [a.course];
-            struct.cAcc = [a.cAcc];
+            struct.hAcc = [a.hAcc];
+            struct.vAcc = [a.vAcc];
             struct.time = [d.time] - t0;
         case 'rosflight_msgs/RCRaw'
             struct.values = [a.values];
