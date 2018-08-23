@@ -81,9 +81,11 @@ for topic = topics
             struct.connected = [a.connected];
             struct.armed = [a.armed];
             struct.guided = [a.guided];
-            struct.mode = [a.mode];
+            temp = struct2cell(a);
+            struct.mode = squeeze(temp(5,1,:));
             struct.system_status = [a.system_status];
             struct.time = [d.time] - t0;
+            clear temp;
             
         case 'mavros_msgs/WaypointReached'
             struct.wp_seq = [a.wp_seq];

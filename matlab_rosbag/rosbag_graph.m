@@ -3,6 +3,9 @@ clear rosbag_wrapper;
 clear ros.bag;
 clear
 
+%% Load the previous session
+load('flight_8_18_18.mat');
+
 %% Get info from rosbag
 bagfile_h = '/home/dallin/flight_rosbags/milestone_3/flight_8_18_18/handoff/handoff.bag';
 bagfile_t = '/home/dallin/flight_rosbags/milestone_3/flight_8_18_18/tracker/tracker.bag';
@@ -38,15 +41,32 @@ tmav_waypoints = [[msgs_t.tracker.mavros.mission.waypoints.waypoints.x_lat];
                  [msgs_t.tracker.mavros.mission.waypoints.waypoints.y_long];
                  [msgs_t.tracker.mavros.mission.waypoints.waypoints.z_alt]]';
              
-t_animation = animatedline('Color', 'y', 'MaximumNumPoints', 200);
-set(gca, 'XLim', [-111.9074 -111.8955], 'YLim', [40.3606 40.3660]);
+t_modes = msgs_t.tracker.mavros.state.mode;
              
-% hold on
+waypoints_anim = animatedline('Color', 'y', 'MaximumNumPoints', 1, 'markers', 12);
+waypoints_anim.LineStyle = ':';
+
+t_animation = animatedline('Color', 'y', 'MaximumNumPoints', 250, 'LineWidth', 3);
+
+set(gca, 'XLim', [-111.9074 -111.8955], 'YLim', [40.3606 40.3660]);
 plot_google_map('Maptype', 'satellite')
-for i=1:length(tmav_pos_global(:,1))
+
+for i=1:length(tmav_pos_global(:,1)-20)
+    t_mode_current = t_modes(int16(i/(length(tmav_pos_global(:,1))/length(t_modes)))+1);
+    if strcmp(t_mode_current, 'GUIDED')
+        t_animation.Color = 'b';
+    elseif strcmp(t_mode_current, 'AUTO')
+        t_animation.Color = 'g';
+    elseif strcmp(t_mode_current, 'RTL')
+        t_animation.Color = 'm';
+    else
+        t_animation.Color = 'r';
+    end
     addpoints(t_animation, tmav_pos_global(i,2), tmav_pos_global(i,1));
-    drawnow
+    drawnow;
+%     pause(.01);
 end
+
 % plot(gt_pos_global(2,:), gt_pos_global(1,:),'r') 
 % plot(hmav_pos_global(:,2), hmav_pos_global(:,1), 'b')
 % plot(hmav_waypoints(:,2), hmav_waypoints(:,1), '.g', 'markers', 12)
